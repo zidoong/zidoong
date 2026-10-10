@@ -204,7 +204,7 @@
         .select("approved")
         .eq("id", data.user.id)
         .single();
-
+if (profileError) alert("승인 조회 오류: " + profileError.message);
       if (profileError || profile?.approved !== true) {
         await supabaseClient.auth.signOut();
         alert("아직 승인되지 않은 계정입니다. 멘토에게 문의해 주세요.");
