@@ -171,16 +171,57 @@
     © 2026 LUMOS GUIDE × ZIDOONG
   </footer>
 
-  <script>
-    document.getElementById("login")
-      .addEventListener("submit", function(event) {
-        event.preventDefault();
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://jcmwkpyxjyvafalpidqk.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_2OkNTL-G6N2SOyf_IJG7SQ_VVEdokm1";
 
-        alert(
-          "현재는 디자인 미리보기입니다. 실제 로그인 기능은 다음 단계에서 연결합니다."
-        );
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  document.getElementById("login").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const button = document.querySelector("#login button");
+
+    button.disabled = true;
+    button.textContent = "로그인 확인 중...";
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
       });
-  </script>
+
+      if (error) throw error;
+
+      const { data: profile, error: profileError } = await supabaseClient
+        .from("mentee_profiles")
+        .select("approved")
+        .eq("id", data.user.id)
+        .single();
+
+      if (profileError || profile?.approved !== true) {
+        await supabaseClient.auth.signOut();
+        alert("아직 승인되지 않은 계정입니다. 멘토에게 문의해 주세요.");
+        return;
+      }
+
+      alert("로그인 성공! 승인된 멘티입니다.");
+    } catch (error) {
+      alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요.");
+    } finally {
+      button.disabled = false;
+      button.textContent = "로그인";
+    }
+  });
+</script>
+
+
 
 </body>
 </html>
