@@ -200,7 +200,7 @@
       if (error) throw error;
 
       const { data: profile, error: profileError } = await supabaseClient
-        .from("mentee_profiles")
+        .from("mentee profiles")
         .select("approved")
         .eq("id", data.user.id)
         .single();
