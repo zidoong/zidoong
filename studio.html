@@ -34,7 +34,7 @@
     <label class="choice"><input type="radio" name="format" value="인스타그램 캡션">인스타그램 캡션</label>
    </div></section>
    <section class="group"><label class="label" for="details">추가 요청사항 (선택)</label><textarea id="details" placeholder="예: 연락이 끊긴 지 2주 된 커플 이야기"></textarea></section>
-   <button id="generate" class="action" type="submit" disabled>✦ AI 홍보글 생성 (서버 연결 예정)</button>
+ <button id="generate" class="action" type="submit">✦ AI 홍보글 생성하기</button>
   </form>
   <div id="result" class="result hidden"></div>
   <button id="logout" class="logout" type="button">로그아웃</button>
@@ -65,7 +65,64 @@ alert("승인 확인: " + (profileError ? profileError.message : JSON.stringify(
   document.getElementById('checking').textContent = '설정을 확인해 주세요: '+err.message;
  }
 }
-document.getElementById('generator').addEventListener('submit',e=>{e.preventDefault();alert('AI 생성 기능은 다음 단계에서 Supabase 서버와 연결합니다.');});
+document.getElementById('generator').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const button = document.getElementById('generate');
+  const result = document.getElementById('result');
+
+  button.disabled = true;
+  button.textContent = 'AI가 홍보글 작성 중...';
+
+  try {
+    const { data: { session }, error: sessionError } =
+      await client.auth.getSession();
+
+    if (sessionError || !session) {
+      throw new Error('로그인이 필요합니다. 다시 로그인해 주세요.');
+    }
+
+    const selected = (name) =>
+      document.querySelector(`input[name="${name}"]:checked`)?.value;
+
+    const { data, error } = await client.functions.invoke(
+      'generate-tarot-post',
+      {
+        body: {
+          topic: selected('topic'),
+          tone: selected('tone'),
+          format: selected('format'),
+          details: document.getElementById('details').value
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      }
+    );
+
+    if (error) {
+      let message = error.message;
+      if (error.context) {
+        try {
+          const response = await error.context.json();
+          message = response.error || message;
+        } catch (_) {}
+      }
+      throw new Error(message);
+    }
+
+    result.textContent = data.text || data.post || data.content ||
+      '서버 응답을 확인해 주세요: ' + JSON.stringify(data);
+    result.classList.remove('hidden');
+
+  } catch (err) {
+    result.textContent = '오류: ' + err.message;
+    result.classList.remove('hidden');
+  } finally {
+    button.disabled = false;
+    button.textContent = '✦ AI 홍보글 생성하기';
+  }
+});
 document.getElementById('logout').addEventListener('click',async()=>{await client.auth.signOut();window.location.replace('index.html');});
 checkAccess();
 </script>
