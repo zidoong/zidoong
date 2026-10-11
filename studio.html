@@ -53,6 +53,7 @@ async function checkAccess() {
  alert("로그인 상태 확인: " + (authError ? authError.message : user ? "로그인 확인됨" : "로그인 정보 없음"));
   if(authError || !user) { window.location.replace('index.html'); return; }
   const {data:profile,error:profileError} = await client.from('mentee profiles').select('approved').eq('id',user.id).single();
+alert("승인 확인: " + (profileError ? profileError.message : JSON.stringify(profile)));
   if(profileError || profile?.approved !== true) {
    await client.auth.signOut();
    alert('승인된 멘티만 이용할 수 있습니다.');
