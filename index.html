@@ -211,7 +211,7 @@ if (profileError) alert("승인 조회 오류: " + profileError.message);
         return;
       }
 
-      alert("로그인 성공! 승인된 멘티입니다.");
+      window.location.href = "studio.html";
     } catch (error) {
       alert("로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요.");
     } finally {
