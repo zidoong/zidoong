@@ -50,6 +50,7 @@ const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_K
 async function checkAccess() {
  try {
   const {data:{user},error:authError} = await client.auth.getUser();
+ alert("로그인 상태 확인: " + (authError ? authError.message : user ? "로그인 확인됨" : "로그인 정보 없음"));
   if(authError || !user) { window.location.replace('index.html'); return; }
   const {data:profile,error:profileError} = await client.from('mentee profiles').select('approved').eq('id',user.id).single();
   if(profileError || profile?.approved !== true) {
