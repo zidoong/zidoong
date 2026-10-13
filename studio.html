@@ -33,6 +33,16 @@
     <label class="choice"><input type="radio" name="format" value="스레드 짧은 글" checked>스레드 짧은 글</label>
     <label class="choice"><input type="radio" name="format" value="인스타그램 캡션">인스타그램 캡션</label>
    </div></section>
+  <section class="group">
+  <span class="label">카톡 대화 예시</span>
+  <label class="choice">
+    <input type="checkbox" id="includeKakao">
+    카톡 대화 예시도 함께 만들기
+  </label>
+  <p style="font-size:12px;color:#777;">
+    선택 시 홍보글과 함께 가상의 카톡 대화 예시를 생성합니다.
+  </p>
+</section>
    <section class="group"><label class="label" for="details">추가 요청사항 (선택)</label><textarea id="details" placeholder="예: 연락이 끊긴 지 2주 된 커플 이야기"></textarea></section>
  <button id="generate" class="action" type="submit">✦ AI 홍보글 생성하기</button>
   </form>
@@ -92,7 +102,8 @@ document.getElementById('generator').addEventListener('submit', async (e) => {
           topic: selected('topic'),
           tone: selected('tone'),
           format: selected('format'),
-          details: document.getElementById('details').value
+          details: document.getElementById('details').value,
+         includeKakao: document.getElementById('includeKakao').checked
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`
