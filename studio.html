@@ -122,8 +122,17 @@ document.getElementById('generator').addEventListener('submit', async (e) => {
       throw new Error(message);
     }
 
-    result.textContent = data.text || data.post || data.content ||
+    const generatedText = data.text || data.post || data.content ||
       '서버 응답을 확인해 주세요: ' + JSON.stringify(data);
+
+    const parts = generatedText.trim().split(/\n+/).map(x => x.trim()).filter(Boolean);
+    const kakaoIndex = parts.findIndex(x => /^\[가상 카톡 대화 예시\]/.test(x));
+    const story = kakaoIndex >= 0 ? parts.slice(0, kakaoIndex) : parts;
+    const kakao = kakaoIndex >= 0 ? parts.slice(kakaoIndex) : [];
+
+    result.textContent =
+      (story.length === 3 ? story.join('\n\n') : story.join('\n')) +
+      (kakao.length ? '\n\n' + kakao.join('\n') : '');
     result.classList.remove('hidden');
 
   } catch (err) {
