@@ -12,11 +12,11 @@
 <div class="wrap">
  <div id="checking" class="status">로그인 및 멘티 승인 상태를 확인하고 있어요...</div>
  <main id="studio" class="card hidden">
-  <div class="top"><div><div class="brand">LUMOS GUIDE × ZIDOONG</div><div class="sub">PRIVATE AI STUDIO</div></div><span class="pill">승인된 멘티</span></div>
+  <div class="top"><div><div class="brand">루모스가이든 × 지둥</div><div class="sub">MENTEE PRIVATE STUDIO</div></div><span class="pill">승인된 멘티</span></div>
   <hr />
-<h1>지둥 멘티 스튜디오 ✦</h1>
+  <h1>지둥 멘티 스튜디오 ✦</h1>
   <p class="lead">멘티만을 위한 AI 콘텐츠 제작 공간</p>
-  <div class="quota"><div class="quota-head"><span>오늘의 AI 글 생성 횟수</span><span id="remaining">연결 준비 중</span></div><div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div><div class="note">하루 3회 제한은 다음 단계에서 서버에 연결됩니다.</div></div>
+  <div class="quota"><div class="quota-head"><span>오늘의 AI 글 생성 횟수</span><span id="remaining">조회 중...</span></div><div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div><div class="note">한국 시간 기준 매일 자정에 이용 횟수가 초기화됩니다.</div></div>
   <form id="generator">
    <section class="group"><span class="label">홍보글 주제</span><div class="options">
     <label class="choice"><input type="radio" name="topic" value="재회 타로" checked>재회 타로</label>
@@ -57,6 +57,21 @@ const SUPABASE_URL = 'https://jcmwkpyxjyvafalpidqk.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY =  'sb_publishable_2OkNTL-G6N2SOyf_IJG7SQ_VVEdokm1';
 
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+async function refreshRemaining() {
+  const remainingEl = document.getElementById('remaining');
+  const { data, error } = await client.rpc('get_my_tarot_remaining');
+  if (error || !Number.isInteger(data)) {
+    remainingEl.textContent = '조회 실패';
+    document.querySelectorAll('.quota .bar').forEach(bar => bar.classList.remove('demo'));
+    return;
+  }
+  const remaining = Math.max(0, Math.min(3, data));
+  remainingEl.textContent = `오늘 남은 생성 횟수 ${remaining}/3회`;
+  document.querySelectorAll('.quota .bar').forEach((bar, index) => {
+    bar.classList.toggle('demo', index < remaining);
+  });
+}
+
 async function checkAccess() {
  try {
   const {data:{user},error:authError} = await client.auth.getUser();
@@ -71,6 +86,7 @@ alert("승인 확인: " + (profileError ? profileError.message : JSON.stringify(
   }
   document.getElementById('checking').classList.add('hidden');
   document.getElementById('studio').classList.remove('hidden');
+  await refreshRemaining();
  } catch(err) {
   document.getElementById('checking').textContent = '설정을 확인해 주세요: '+err.message;
  }
@@ -134,11 +150,13 @@ document.getElementById('generator').addEventListener('submit', async (e) => {
       (story.length === 3 ? story.join('\n\n') : story.join('\n')) +
       (kakao.length ? '\n\n' + kakao.join('\n') : '');
     result.classList.remove('hidden');
+    await refreshRemaining();
 
   } catch (err) {
     result.textContent = '오류: ' + err.message;
     result.classList.remove('hidden');
   } finally {
+    await refreshRemaining();
     button.disabled = false;
     button.textContent = '✦ AI 홍보글 생성하기';
   }
